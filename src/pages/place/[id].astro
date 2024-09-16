@@ -1,0 +1,64 @@
+---
+import type { GetStaticPaths } from "astro";
+import { actions } from "astro:actions";
+
+import MainLayout from "@/layouts/MainLayout.astro";
+import Star from "@/components/Star.astro";
+import { Image } from "astro:assets";
+import Availability from "@/components/Availability.astro";
+
+// Crea nuestra pagina de detalle de lugar de forma estatica y ademas se le pasa el id del lugar como params y el lugar como props 
+export const getStaticPaths = (async() => {
+  const {data} = await actions.getPlaces();
+  if (!data) throw new Error("No data retured from getPlaces");
+
+  return data.map((place) => ({
+    params: {id: place.id},
+    props: {
+      place
+    }
+  }));
+}) satisfies GetStaticPaths;
+
+
+const {id} = Astro.params;
+const {place} = Astro.props;
+
+const imageUrl = `/assets/images/${place.image}`;
+---
+
+<MainLayout>
+  <div class="grid grid-cols-2 gap-2">
+    <div class="bg-white/80 p-5 rounded-xl">
+      <h1 class="text-2xl font-extrabold">#{id} {place.title}</h1>
+      <p class="text-lg text-gray-600">{place.description}</p>
+
+      <div class="flex flex-1">
+        {
+          Array.from({ length: Number(place.avg_rating) }).map((_) => (
+            <Star />
+          ))
+        }
+      </div>
+
+      <!-- Server Island (componente)  -->
+      <Availability server:defer placeId={id.toString()}>
+        <!-- slot="fallback" permite usarse en este server island para mostrar un loading o skeleton mientras carga la info -->
+        <p slot="fallback" class="bg-gray-300 mt-5 text-center rounded-xl p-2 animate-pulse">
+        Espere
+        </p>
+      </Availability>
+    </div>
+
+    <div>
+      <Image
+        class="w-full h-96 object-cover rounded-xl"
+        src={imageUrl}
+        alt={place.title}
+        width={800}
+        height={800}
+      />
+    </div>
+  </div>
+</MainLayout>
+

@@ -1,0 +1,26 @@
+---
+import { actions } from 'astro:actions';
+
+interface Props{
+  placeId: string;
+}
+
+const { placeId } = Astro.props;
+
+// orThrow() es una funcion que se encarga de lanzar un error si no se encuentra el lugar con el id especificado
+// const data = await actions.getAvailabilityById.orThrow(placeId);
+
+// callAction() es una funcion que se encarga de llamar a la accion getAvailabilityById y le pasa el id del lugar
+const {data} = await Astro.callAction(actions.getAvailabilityById, placeId);
+if (!data) throw new Error("No data returned from actions.getAvailabilityById");
+
+const { isAvailable,message } = data;
+---
+
+{
+  isAvailable ? (
+    <p class="bg-blue-300 mt-5 text-center rounded-xl p-2">{message}</p>
+  ) : (
+    <p class="bg-red-300 mt-5 text-center rounded-xl p-2">{message}</p>
+  )
+}
